@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
     private TextureView cameraView;
     private TextView inceptionTextResponse;
 
-    Photography phy = new Photography(this);
+    Photography phy = new Photography(this, takePictureBtn, cameraView);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

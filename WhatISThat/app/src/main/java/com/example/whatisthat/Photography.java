@@ -17,12 +17,16 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
+import android.view.Surface;
 import android.view.TextureView;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import java.io.File;
+import java.util.Arrays;
 
 public class Photography {
 
@@ -43,14 +47,20 @@ public class Photography {
     private ImageReader imgReader;
     private File file;
 
-    // Others
+    // Photography Object
     Context context;
+    Button takePictureBtn;
+    TextureView cameraView;
+
+    // Others
     private boolean flash;
     private Handler bgHandler;
     private HandlerThread bgThread;
 
-    public Photography(Context context) {
+    public Photography(Context context, Button takePictureBtn, TextureView cameraView) {
         this.context = context;
+        this.takePictureBtn = takePictureBtn;
+        this.cameraView = cameraView;
     }
 
     TextureView.SurfaceTextureListener cameraListener = new TextureView.SurfaceTextureListener() {
@@ -142,9 +152,40 @@ public class Photography {
         public void onClosed(@NonNull CameraDevice camera) { }
     };
 
-    // TODO
     protected void cameraPreview() {
+        try {
+            SurfaceTexture texture = cameraView.getSurfaceTexture();
+            texture.setDefaultBufferSize(imgSize.getWidth(), imgSize.getHeight());
 
+            // Handle onto a raw buffer that is being managed by the screen compositor.
+            Surface surface = new Surface(texture);
+
+            // Create a CaptureRequest.Builder for new capture requests, initialized with template for a target use case.
+            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            // Add a surface to the list of targets for this request.
+            captureRequestBuilder.addTarget(surface);
+            // Create a new CameraCaptureSession using a SessionConfiguration helper object that aggregates all supported parameters.
+            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession session) {
+                    // Camera closed
+                    if (cameraDevice == null)
+                        return;
+
+                    // Session ready to display the preview
+                    cameraCaptureSession = session;
+
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                    Toast.makeText(context, "Config Change", Toast.LENGTH_SHORT).show();
+                }
+            }, null);
+        } catch (CameraAccessException camErr) {
+            Log.e(TAG, "ERROR: cameraPreview()");
+            camErr.printStackTrace();
+        }
     }
 
 }
