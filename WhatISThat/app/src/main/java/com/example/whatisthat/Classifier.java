@@ -45,7 +45,7 @@ public class Classifier {
 				rgbArray[0][i][j][2] = rand.nextFloat()*255;
             }
         }
-        imageTensor = Tensor.create(rgbArray, Float.class);
+        // imageTensor = Tensor.create(rgbArray, Float.class);
 	}
 	
 	private void resizeImage() {
