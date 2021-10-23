@@ -1,14 +1,21 @@
 package com.example.whatisthat;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import androidx.annotation.NonNull;
 
+import com.example.whatisthat.ml.InceptionV4299Quant;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 //import org.tensorflow.Graph;
+import org.tensorflow.DataType;
 import org.tensorflow.Tensor;
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 public class Classifier {
 	private final int WIDTH = 299;
@@ -31,21 +38,24 @@ public class Classifier {
 	
 	private void createTensor() {
         int[] data = new int[WIDTH * HEIGHT];
-        float[][][][] rgbArray = new float[1][HEIGHT][WIDTH][3];
+        //float[][][][] rgbArray = new float[1][HEIGHT][WIDTH][3];
         //image.getRGB(0, 0, WIDTH, HEIGHT, data, 0, width);
 		Random rand = new Random();
+		float[] randomBytes = new float[299*299*3];
+		for (int i = 0; i < 299*299*3; i++) {
+			randomBytes[i] = rand.nextFloat();
+		}
+		/*
         for (int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
-                //Color color = new Color(data[i * WIDTH + j]);
-                //rgbArray[0][i][j][0] = color.getRed();
-				rgbArray[0][i][j][0] = rand.nextFloat()*255;
-                //rgbArray[0][i][j][1] = color.getGreen();
-				rgbArray[0][i][j][1] = rand.nextFloat()*255;
-                //rgbArray[0][i][j][2] = color.getBlue();
-				rgbArray[0][i][j][2] = rand.nextFloat()*255;
+                Color color = new Color(data[i * WIDTH + j]);
+                rgbArray[0][i][j][0] = color.getRed();
+                rgbArray[0][i][j][1] = color.getGreen();
+                rgbArray[0][i][j][2] = color.getBlue();
             }
-        }
-        // imageTensor = Tensor.create(rgbArray, Float.class);
+        }*/
+		float[][][] matrix = new float[299][299][3];
+        //imageTensor = Tensor.create(matrix,randomBytes);
 	}
 	
 	private void resizeImage() {
@@ -64,6 +74,9 @@ public class Classifier {
 	}
 	
 	public void run() {
-		
+
 	}
+	
+	
+
 }
