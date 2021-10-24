@@ -24,6 +24,9 @@ public class MainActivity extends AppCompatActivity {
     private TextureView cameraView;
     private TextView inceptionTextResponse;
 
+    //classifier elements
+    private Classifier classifier;
+
     Photography phy;
 
     @Override
@@ -36,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
         // Bind frontend takepicture Button
         takePictureBtn = findViewById(R.id.btn_takepicture);
 
-
         // Bind frontend inception text holder
         // inceptionTextResponse = (TextView) findViewById(R.id.inception_response);
 
@@ -48,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
                 phy.takePicture();
             }
         });
+
+        //Classifier creation
+        classifier = new Classifier(getApplicationContext());
+
     }
 
     @Override
