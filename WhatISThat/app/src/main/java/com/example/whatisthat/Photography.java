@@ -157,10 +157,10 @@ public class Photography {
 
             int width = 640;
             int height = 480;
-            if (jpegSizes != null && 0 < jpegSizes.length) {
-                width = jpegSizes[0].getWidth();
-                height = jpegSizes[0].getHeight();
-            }
+            // if (jpegSizes != null && 0 < jpegSizes.length) {
+            //     width = jpegSizes[0].getWidth();
+            //     height = jpegSizes[0].getHeight();
+            // }
 
             // The ImageReader class allows direct application access to image data rendered into a Surface
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
@@ -178,7 +178,9 @@ public class Photography {
             // Returns the rotation of the screen from its "natural" orientation.
             int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
-            final File file = new File(Environment.getExternalStorageState() + "/inception.jpg");
+
+            File path = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            final File file = new File(path, "inceptionV3.JPG");
 
             // Callback interface for being notified that a new image is available.
             // The onImageAvailable is called per image basis, that is, callback fires for every new frame available from ImageReader.
@@ -188,6 +190,8 @@ public class Photography {
                     Image img = null;
                     try {
                         img = reader.acquireLatestImage();
+                        if (img == null)
+                            Log.e(TAG, "ERROR: reader.acquireLatestImage() return null");
                         ByteBuffer buffer = img.getPlanes()[0].getBuffer();
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
@@ -205,8 +209,9 @@ public class Photography {
                 }
 
                 private void save (byte [] bytes) throws IOException {
-                    try (OutputStream out = new FileOutputStream(file)) {
+                    try (FileOutputStream out = new FileOutputStream(file)) {
                         out.write(bytes);
+                        Log.d(TAG, "Picture successfully saved.");
                     }
                 }
             };
