@@ -138,14 +138,19 @@ public class Photography {
         public void onClosed(@NonNull CameraDevice camera) { }
     };
 
-    protected void takePicture() {
+    // if savePicture is TRUE: the method will save the picture and return the bytes
+    // if savePicture is FALSE: the method only returns the bytes
+    protected byte[] takePicture(boolean savePicture) {
         if (cameraDevice == null) {
             Log.e(TAG, "ERROR: takePicture() -- cameraDevice is NULL");
-            return;
+            return null;
         }
 
         // CAMERA_SERVICE: Use with getSystemService(java.lang.String) to retrieve a CameraManager for interacting with camera devices.
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+
+        // value to be returned
+        final byte[][] returnBytes = {null};
 
         try {
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
@@ -193,9 +198,15 @@ public class Photography {
                         if (img == null)
                             Log.e(TAG, "ERROR: reader.acquireLatestImage() return null");
                         ByteBuffer buffer = img.getPlanes()[0].getBuffer();
-                        byte[] bytes = new byte[buffer.capacity()];
+                        byte [] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
-                        save(bytes);
+
+                        // if we don't want to save the picture and only
+                        // get the bytes, we return the bytes
+                        if(!savePicture)
+                            returnBytes[0] = bytes;
+                        else
+                            save(bytes);
                     } catch (FileNotFoundException fileError) {
                         Log.e(TAG, "ERROR: takePicture().readListener.fileError");
                         fileError.printStackTrace();
@@ -248,6 +259,7 @@ public class Photography {
             Log.e(TAG, "ERROR: takePicture()");
             camError.printStackTrace();
         }
+        return returnBytes[0];
     }
 
     protected void managerOpenCamera() {

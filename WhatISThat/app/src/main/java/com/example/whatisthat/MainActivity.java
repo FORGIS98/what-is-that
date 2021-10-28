@@ -43,11 +43,13 @@ public class MainActivity extends AppCompatActivity {
         // inceptionTextResponse = (TextView) findViewById(R.id.inception_response);
 
         phy = new Photography(this, takePictureBtn, cameraView);
+        final byte[][] pictureBytes = {null};
+
         cameraView.setSurfaceTextureListener(phy.cameraListener);
         takePictureBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                phy.takePicture();
+                pictureBytes[0] = phy.takePicture(false);
             }
         });
 
