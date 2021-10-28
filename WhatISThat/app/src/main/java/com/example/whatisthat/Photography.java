@@ -162,10 +162,17 @@ public class Photography {
 
             int width = 640;
             int height = 480;
-            // if (jpegSizes != null && 0 < jpegSizes.length) {
-            //     width = jpegSizes[0].getWidth();
-            //     height = jpegSizes[0].getHeight();
-            // }
+
+            if (jpegSizes != null && 0 < jpegSizes.length) {
+                for (Size s : jpegSizes) {
+                    // Best quality is: 4032x3024
+                    // But it is to much for my phone XD
+                    if (s.toString().equals("1920x1080")) {
+                        width = s.getWidth();
+                        height = s.getHeight();
+                    }
+                }
+            }
 
             // The ImageReader class allows direct application access to image data rendered into a Surface
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
@@ -184,8 +191,9 @@ public class Photography {
             int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-            File path = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File path = context.getFilesDir();
             final File file = new File(path, "inceptionV3.JPG");
+            Log.i(TAG, "Saving picture in folder: " + file.toString());
 
             // Callback interface for being notified that a new image is available.
             // The onImageAvailable is called per image basis, that is, callback fires for every new frame available from ImageReader.
@@ -258,7 +266,11 @@ public class Photography {
         } catch (CameraAccessException camError) {
             Log.e(TAG, "ERROR: takePicture()");
             camError.printStackTrace();
+        } catch (NullPointerException nullError) {
+            Log.e(TAG, "ERROR: takePicture");
+            nullError.printStackTrace();
         }
+
         return returnBytes[0];
     }
 

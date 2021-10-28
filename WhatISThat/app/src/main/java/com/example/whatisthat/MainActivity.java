@@ -49,7 +49,9 @@ public class MainActivity extends AppCompatActivity {
         takePictureBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                pictureBytes[0] = phy.takePicture(false);
+                // ture: if I want to save the picture
+                // false: if I DON'T want to save the picture
+                pictureBytes[0] = phy.takePicture(true);
             }
         });
 
