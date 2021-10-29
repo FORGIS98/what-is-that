@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -13,13 +12,11 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -37,10 +34,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Photography {
@@ -74,7 +71,6 @@ public class Photography {
     TextureView cameraView;
 
     // Others
-    private boolean flash;
     private Handler bckGroundHandler;
     private HandlerThread bckGroundThread;
 
@@ -191,28 +187,25 @@ public class Photography {
             int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-            File path = context.getFilesDir();
-            final File file = new File(path, "inceptionV3.JPG");
-            Log.i(TAG, "Saving picture in folder: " + file.toString());
-
             // Callback interface for being notified that a new image is available.
             // The onImageAvailable is called per image basis, that is, callback fires for every new frame available from ImageReader.
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
-                    Image img = null;
-                    try {
-                        img = reader.acquireLatestImage();
+                    try (Image img = reader.acquireLatestImage()) {
                         if (img == null)
                             Log.e(TAG, "ERROR: reader.acquireLatestImage() return null");
+                        assert img != null;
                         ByteBuffer buffer = img.getPlanes()[0].getBuffer();
-                        byte [] bytes = new byte[buffer.capacity()];
+                        Log.i(TAG, "Buffer: " + buffer.toString());
+                        byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
+                        Log.i(TAG, "bytes: " + Arrays.toString(bytes));
 
                         // if we don't want to save the picture and only
                         // get the bytes, we return the bytes
-                        if(!savePicture)
-                            returnBytes[0] = bytes;
+                        if (!savePicture)
+                            returnBytes[0] = bytes.clone();
                         else
                             save(bytes);
                     } catch (FileNotFoundException fileError) {
@@ -221,13 +214,14 @@ public class Photography {
                     } catch (IOException ioError) {
                         Log.e(TAG, "ERROR: takePicture().readListener.ioError");
                         ioError.printStackTrace();
-                    } finally {
-                        if (img != null)
-                            img.close();
                     }
                 }
 
                 private void save (byte [] bytes) throws IOException {
+                    File path = context.getFilesDir();
+                    final File file = new File(path, "inceptionV3.JPG");
+                    Log.i(TAG, "Saving picture in folder: " + file.toString());
+
                     try (FileOutputStream out = new FileOutputStream(file)) {
                         out.write(bytes);
                         Log.d(TAG, "Picture successfully saved.");
@@ -253,7 +247,7 @@ public class Photography {
                     try {
                         session.capture(captureBuilder.build(), captureListener, bckGroundHandler);
                     } catch (CameraAccessException camError) {
-                        Log.e(TAG, "ERROR: takePicture().crateCaptureSeesion -- CameraAccessException");
+                        Log.e(TAG, "ERROR: takePicture().crateCaptureSession -- CameraAccessException");
                         camError.printStackTrace();
                     }
                 }
@@ -319,7 +313,7 @@ public class Photography {
             // Add a surface to the list of targets for this request.
             captureRequestBuilder.addTarget(surface);
             // Create a new CameraCaptureSession using a SessionConfiguration helper object that aggregates all supported parameters.
-            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+            cameraDevice.createCaptureSession(Collections.singletonList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     // Camera closed
@@ -381,9 +375,9 @@ public class Photography {
             bckGroundThread.join();
             bckGroundThread = null;
             bckGroundHandler = null;
-        } catch (InterruptedException interrError) {
+        } catch (InterruptedException interError) {
             Log.e(TAG, "ERROR: stopBackgroundThread()");
-            interrError.printStackTrace();
+            interError.printStackTrace();
         }
     }
 }

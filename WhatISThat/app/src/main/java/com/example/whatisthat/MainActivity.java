@@ -45,18 +45,19 @@ public class MainActivity extends AppCompatActivity {
         phy = new Photography(this, takePictureBtn, cameraView);
         final byte[][] pictureBytes = {null};
 
+        classifier = new Classifier(this);
+
         cameraView.setSurfaceTextureListener(phy.cameraListener);
         takePictureBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                // ture: if I want to save the picture
+                // true: if I want to save the picture
                 // false: if I DON'T want to save the picture
-                pictureBytes[0] = phy.takePicture(true);
+                pictureBytes[0] = phy.takePicture(false);
+                Log.i(TAG, "picture_bytes: " + pictureBytes[0]);
+                //classifier.feed(pictureBytes[0]);
             }
         });
-
-        //Classifier creation
-        classifier = new Classifier(getApplicationContext());
 
     }
 

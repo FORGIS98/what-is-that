@@ -8,6 +8,8 @@ import com.example.whatisthat.ml.InceptionV4299Quant;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
@@ -40,6 +42,12 @@ public class Classifier {
 
 		model.close();
 
+	}
+
+	public void feed(byte[] picture) {
+		Log.i("CLASSIFIER", "picture: " + Arrays.toString(picture));
+		Log.i("CLASSIFIER", "picture length: " + picture.length);
+		//inputFeature0.loadArray((int[]) picture);
 	}
 
 	public void run(ByteBuffer byteBuffer) {
