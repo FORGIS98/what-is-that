@@ -162,7 +162,6 @@ public class Photography {
             if (jpegSizes != null && 0 < jpegSizes.length) {
                 for (Size s : jpegSizes) {
                     // Best quality is: 4032x3024
-                    // But it is to much for my phone XD
                     if (s.toString().equals("1920x1080")) {
                         width = s.getWidth();
                         height = s.getHeight();
@@ -193,25 +192,27 @@ public class Photography {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
                     try (Image img = reader.acquireLatestImage()) {
-                        if (img == null)
+                        if (img == null) {
                             Log.e(TAG, "ERROR: reader.acquireLatestImage() return null");
-                        assert img != null;
+                            throw new NullPointerException();
+                        }
                         ByteBuffer buffer = img.getPlanes()[0].getBuffer();
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
 
-                        // if we don't want to save the picture and only
-                        // get the bytes, we return the bytes
-                        if (!savePicture)
-                            returnBytes[0] = bytes.clone();
-                        else
+                        returnBytes[0] = bytes.clone();
+                        if (savePicture)
                             save(bytes);
+
                     } catch (FileNotFoundException fileError) {
                         Log.e(TAG, "ERROR: takePicture().readListener.fileError");
                         fileError.printStackTrace();
                     } catch (IOException ioError) {
                         Log.e(TAG, "ERROR: takePicture().readListener.ioError");
                         ioError.printStackTrace();
+                    } catch (NullPointerException nullError) {
+                        Log.e(TAG, "ERROR: takePicture() Imagen == NULL");
+                        nullError.printStackTrace();
                     }
                 }
 
@@ -233,7 +234,7 @@ public class Photography {
                 @Override
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(context, "Saved: " + file, Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(context, "Saved: " + file, Toast.LENGTH_SHORT).show();
                     cameraPreview();
                 }
             };
@@ -262,8 +263,18 @@ public class Photography {
             Log.e(TAG, "ERROR: takePicture");
             nullError.printStackTrace();
         }
-        Thread.sleep(200);
-        Log.i("returnBytes", returnBytes[0].toString());
+
+        // Wait for returnBytes to hold the picture.
+        // Will "TimeOut" after 2000ms
+        int times = 0;
+        while (returnBytes[0] == null && times < 20) {
+            Thread.sleep(100);
+            times += 1;
+        }
+        if(returnBytes[0] == null) {
+            Log.e(TAG, "returnBytes is NULL");
+            throw new NullPointerException();
+        }
         return returnBytes[0];
     }
 

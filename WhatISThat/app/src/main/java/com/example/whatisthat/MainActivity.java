@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         takePictureBtn = findViewById(R.id.btn_takepicture);
 
         // Bind frontend inception text holder
-        // inceptionTextResponse = (TextView) findViewById(R.id.inception_response);
+        inceptionTextResponse = (TextView) findViewById(R.id.inception_response);
 
         phy = new Photography(this, takePictureBtn, cameraView);
         final byte[][] pictureBytes = {null};
@@ -51,21 +51,23 @@ public class MainActivity extends AppCompatActivity {
         takePictureBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                // true: if I want to save the picture
-                // false: if I DON'T want to save the picture
-                try {
-                    pictureBytes[0] = phy.takePicture(false);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                Log.i(TAG, "picture_bytes: " + pictureBytes[0]);
-                classifier.feed(pictureBytes[0]);
-                classifier.run();
-                String bestLabel = classifier.get();
-                Log.i(TAG, "bestLabel: " + bestLabel);
+                new Thread (new Runnable() {
+                    public void run() {
+                        try {
+                            pictureBytes[0] = phy.takePicture(false);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        Log.i(TAG, "picture_bytes: " + pictureBytes[0]);
+                        classifier.feed(pictureBytes[0]);
+                        classifier.run();
+                        String bestLabel = classifier.get();
+                        Log.i(TAG, "bestLabel: " + bestLabel);
+                        // inceptionTextResponse.setText(bestLabel);
+                    }
+                }).start();
             }
         });
-
     }
 
     @Override
