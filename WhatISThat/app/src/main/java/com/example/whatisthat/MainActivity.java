@@ -53,9 +53,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v){
                 // true: if I want to save the picture
                 // false: if I DON'T want to save the picture
-                pictureBytes[0] = phy.takePicture(false);
+                try {
+                    pictureBytes[0] = phy.takePicture(false);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 Log.i(TAG, "picture_bytes: " + pictureBytes[0]);
-                //classifier.feed(pictureBytes[0]);
+                classifier.feed(pictureBytes[0]);
+                classifier.run();
+                String bestLabel = classifier.get();
+                Log.i(TAG, "bestLabel: " + bestLabel);
             }
         });
 

@@ -136,7 +136,7 @@ public class Photography {
 
     // if savePicture is TRUE: the method will save the picture and return the bytes
     // if savePicture is FALSE: the method only returns the bytes
-    protected byte[] takePicture(boolean savePicture) {
+    protected byte[] takePicture(boolean savePicture) throws InterruptedException {
         if (cameraDevice == null) {
             Log.e(TAG, "ERROR: takePicture() -- cameraDevice is NULL");
             return null;
@@ -197,10 +197,8 @@ public class Photography {
                             Log.e(TAG, "ERROR: reader.acquireLatestImage() return null");
                         assert img != null;
                         ByteBuffer buffer = img.getPlanes()[0].getBuffer();
-                        Log.i(TAG, "Buffer: " + buffer.toString());
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
-                        Log.i(TAG, "bytes: " + Arrays.toString(bytes));
 
                         // if we don't want to save the picture and only
                         // get the bytes, we return the bytes
@@ -264,7 +262,8 @@ public class Photography {
             Log.e(TAG, "ERROR: takePicture");
             nullError.printStackTrace();
         }
-
+        Thread.sleep(200);
+        Log.i("returnBytes", returnBytes[0].toString());
         return returnBytes[0];
     }
 
