@@ -5,6 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
@@ -47,24 +50,37 @@ public class MainActivity extends AppCompatActivity {
 
         classifier = new Classifier(this);
 
+        // Thread Logic
+        final Handler responseHandler = new Handler(Looper.getMainLooper()) {
+            public void handleMessage(Message msg) {
+                inceptionTextResponse.setText(((String) msg.obj).toUpperCase());
+                inceptionTextResponse.setBackgroundResource(R.drawable.round_rectangle);
+            }
+        };
+
         cameraView.setSurfaceTextureListener(phy.cameraListener);
         takePictureBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                new Thread (new Runnable() {
-                    public void run() {
-                        try {
-                            pictureBytes[0] = phy.takePicture(false);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        Log.i(TAG, "picture_bytes: " + pictureBytes[0]);
-                        classifier.feed(pictureBytes[0]);
-                        classifier.run();
-                        String bestLabel = classifier.get();
-                        Log.i(TAG, "bestLabel: " + bestLabel);
-                        // inceptionTextResponse.setText(bestLabel);
+                // Clear TextView text
+                inceptionTextResponse.setText("");
+                inceptionTextResponse.setBackgroundResource(0);
+
+                new Thread (() -> {
+                    try {
+                        pictureBytes[0] = phy.takePicture(false);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
+                    Log.i(TAG, "picture_bytes: " + pictureBytes[0]);
+                    classifier.feed(pictureBytes[0]);
+                    classifier.run();
+                    String bestLabel = classifier.get();
+                    Log.i(TAG, "bestLabel: " + bestLabel);
+
+                    Message msg = new Message();
+                    msg.obj = bestLabel;
+                    responseHandler.sendMessage(msg);
                 }).start();
             }
         });
