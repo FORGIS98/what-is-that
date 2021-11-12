@@ -65,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
                 // Clear TextView text
                 inceptionTextResponse.setText("");
                 inceptionTextResponse.setBackgroundResource(0);
-
                 new Thread (() -> {
+                    while (true) {
                     try {
                         pictureBytes[0] = phy.takePicture(false);
                     } catch (InterruptedException e) {
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     Message msg = new Message();
                     msg.obj = bestLabel;
                     responseHandler.sendMessage(msg);
-                }).start();
+                }}).start();
             }
         });
     }

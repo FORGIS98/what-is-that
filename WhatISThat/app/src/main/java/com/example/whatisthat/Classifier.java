@@ -84,7 +84,7 @@ public class Classifier {
 				idProb = i;
 			}
 		}
-		return lastProbability.get(idProb).getLabel();
+		return lastProbability.get(idProb).getLabel() + " " + maxProb;
 	}
 
 	public void close() {
