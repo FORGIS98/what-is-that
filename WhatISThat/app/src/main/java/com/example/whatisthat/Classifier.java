@@ -1,5 +1,6 @@
 package com.example.whatisthat;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import android.graphics.Bitmap;
@@ -27,7 +28,6 @@ public class Classifier {
 
 	InceptionV4Quant1Metadata1 model;
 	TensorBuffer inputFeature0;
-	TensorBuffer outputFeature0;
 	TensorImage image;
 
 	private float[] cumProb;
@@ -84,7 +84,8 @@ public class Classifier {
 				idProb = i;
 			}
 		}
-		return lastProbability.get(idProb).getLabel() + " " + maxProb;
+
+		return lastProbability.get(idProb).getLabel() + " " + String.format("%.2f", maxProb);
 	}
 
 	public void close() {

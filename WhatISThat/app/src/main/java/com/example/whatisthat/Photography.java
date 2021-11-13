@@ -36,7 +36,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -63,7 +62,6 @@ public class Photography {
     // Image vars
     private Size imgSize;
     private ImageReader imgReader;
-    private File file;
 
     // Photography Object
     Context context;
