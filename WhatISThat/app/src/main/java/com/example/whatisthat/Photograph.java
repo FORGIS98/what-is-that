@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Photography {
+public class Photograph {
 
     // TAG for logs
     private static final String TAG = "what-is-that";
@@ -72,7 +72,7 @@ public class Photography {
     private Handler bckGroundHandler;
     private HandlerThread bckGroundThread;
 
-    public Photography(Context context, Button takePictureBtn, TextureView cameraView) {
+    public Photograph(Context context, Button takePictureBtn, TextureView cameraView) {
         this.context = context;
         this.takePictureBtn = takePictureBtn;
         this.cameraView = cameraView;
@@ -134,7 +134,7 @@ public class Photography {
 
     // if savePicture is TRUE: the method will save the picture and return the bytes
     // if savePicture is FALSE: the method only returns the bytes
-    protected byte[] takePicture(boolean savePicture) throws InterruptedException {
+    protected Picture takePicture(boolean savePicture) throws InterruptedException {
         if (cameraDevice == null) {
             Log.e(TAG, "ERROR: takePicture() -- cameraDevice is NULL");
             return null;
@@ -143,9 +143,7 @@ public class Photography {
         // CAMERA_SERVICE: Use with getSystemService(java.lang.String) to retrieve a CameraManager for interacting with camera devices.
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
 
-        // value to be returned
-        final byte[][] returnBytes = {null};
-
+        Picture returnPicture = null;
         try {
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
             Size [] jpegSizes = null;
@@ -184,9 +182,22 @@ public class Photography {
             int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
+            try (Image img = reader.acquireLatestImage()) {
+                if (img == null) {
+                    Log.e(TAG, "ERROR: reader.acquireLatestImage() return null");
+                    throw new NullPointerException();
+                }
+                ByteBuffer buffer = img.getPlanes()[0].getBuffer();
+                returnPicture = new Picture(buffer);
+
+            } catch (NullPointerException nullError) {
+                Log.e(TAG, "ERROR: takePicture() Image == NULL");
+                nullError.printStackTrace();
+            }
+
             // Callback interface for being notified that a new image is available.
             // The onImageAvailable is called per image basis, that is, callback fires for every new frame available from ImageReader.
-            ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
+            /*ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
                     try (Image img = reader.acquireLatestImage()) {
@@ -195,10 +206,8 @@ public class Photography {
                             throw new NullPointerException();
                         }
                         ByteBuffer buffer = img.getPlanes()[0].getBuffer();
-                        byte[] bytes = new byte[buffer.capacity()];
-                        buffer.get(bytes);
+                        Picture returnPicture = new Picture(buffer);
 
-                        returnBytes[0] = bytes.clone();
                         if (savePicture)
                             save(bytes);
 
@@ -224,9 +233,9 @@ public class Photography {
                         Log.d(TAG, "Picture successfully saved.");
                     }
                 }
-            };
+            };*/
 
-            reader.setOnImageAvailableListener(readerListener, bckGroundHandler);
+            //reader.setOnImageAvailableListener(readerListener, bckGroundHandler);
             // A callback object for tracking the progress of a CaptureRequest submitted to the camera device.
             final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -264,7 +273,7 @@ public class Photography {
 
         // Wait for returnBytes to hold the picture.
         // Will "TimeOut" after 2000ms
-        int times = 0;
+        /*int times = 0;
         while (returnBytes[0] == null && times < 20) {
             Thread.sleep(100);
             times += 1;
@@ -272,8 +281,8 @@ public class Photography {
         if(returnBytes[0] == null) {
             Log.e(TAG, "returnBytes is NULL");
             throw new NullPointerException();
-        }
-        return returnBytes[0];
+        }*/
+        return returnPicture;
     }
 
     protected void managerOpenCamera() {

@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     //classifier elements
     private Classifier classifier;
 
-    Photography phy;
+    Photograph phy;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         // Bind frontend inception text holder
         inceptionTextResponse = findViewById(R.id.inception_response);
 
-        phy = new Photography(this, takePictureBtn, cameraView);
+        phy = new Photograph(this, takePictureBtn, cameraView);
         final byte[][] pictureBytes = {null};
 
         classifier = new Classifier(this);
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (takingPictures.get()) {
                 // Clear TextView text
-                inceptionTextResponse.setText("");
+                inceptionTextResponse.setText("Analyzing...");
                 inceptionTextResponse.setBackgroundResource(0);
 
                 // takingPictures to false so if we press the button again we will
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // takingPictures to true so next time we press the button the app
                 // starts the "taking pictures thread" and autoPictures to false so
-                // we finisg the running "taking pictures thread"
+                // we finish the running "taking pictures thread"
                 takingPictures.set(true);
                 autoPictures.set(false);
                 takePictureBtn.setText(R.string.take_picture);
