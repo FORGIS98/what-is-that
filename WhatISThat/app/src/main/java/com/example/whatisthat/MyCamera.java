@@ -1,2 +1,4 @@
-package com.example.whatisthat;public class MyCamera {
+package com.example.whatisthat;
+
+public class MyCamera {
 }

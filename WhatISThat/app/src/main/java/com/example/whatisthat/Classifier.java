@@ -1,16 +1,12 @@
 package com.example.whatisthat;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.example.whatisthat.ml.InceptionV4Quant1Metadata1;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.tensorflow.lite.DataType;
@@ -24,13 +20,12 @@ public class Classifier {
 	private final int WIDTH = 299;
 	private final int HEIGHT = 299;
 	private final int NBLABELS = 1001;
-	private final int NBCHANNELS = 3;
 
 	InceptionV4Quant1Metadata1 model;
 	TensorBuffer inputFeature0;
 	TensorImage image;
 
-	private float[] cumProb;
+	private final float[] cumProb;
 	List<Category> lastProbability;
 
 	public Classifier(Context context) {
@@ -48,10 +43,12 @@ public class Classifier {
 		image = new TensorImage(DataType.UINT8);
 
 		//Initialize inputs
-		inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, WIDTH, HEIGHT, NBCHANNELS}, DataType.UINT8);
+		final int NBCHANNELS = 3;
+		inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, WIDTH, HEIGHT, NBCHANNELS},
+				DataType.UINT8);
 	}
 
-	private void resizePicture() {
+	private void resizeImage() {
 		ImageProcessor imageProcessor =
 				new ImageProcessor.Builder()
 						.add(new ResizeOp(HEIGHT, WIDTH, ResizeOp.ResizeMethod.BILINEAR))
@@ -59,11 +56,10 @@ public class Classifier {
 		image = imageProcessor.process(image);
 	}
 
-	public void feed(byte[] picture) {
-		Log.i("CLASSIFIER", "picture: " + Arrays.toString(picture));
-		Bitmap bmp = BitmapFactory.decodeByteArray(picture, 0, picture.length);
-		image.load(bmp);
-		resizePicture();
+	public void feed(Picture picture) {
+		Log.i("CLASSIFIER", "picture: " + picture);
+		image.load(picture.getBitmap());
+		resizeImage();
 		inputFeature0.loadBuffer(image.getBuffer());
 	}
 
@@ -85,7 +81,7 @@ public class Classifier {
 			}
 		}
 
-		return lastProbability.get(idProb).getLabel() + " " + String.format("%.2f", maxProb);
+		return lastProbability.get(idProb).getLabel() + " " + (int) (maxProb*100) + "%";
 	}
 
 	public void close() {

@@ -134,7 +134,7 @@ public class Photograph {
 
     // if savePicture is TRUE: the method will save the picture and return the bytes
     // if savePicture is FALSE: the method only returns the bytes
-    protected Picture takePicture(boolean savePicture) throws InterruptedException {
+    protected Picture takePicture(boolean savePicture) {
         if (cameraDevice == null) {
             Log.e(TAG, "ERROR: takePicture() -- cameraDevice is NULL");
             return null;
@@ -218,7 +218,7 @@ public class Photograph {
                         Log.e(TAG, "ERROR: takePicture().readListener.ioError");
                         ioError.printStackTrace();
                     } catch (NullPointerException nullError) {
-                        Log.e(TAG, "ERROR: takePicture() Imagen == NULL");
+                        Log.e(TAG, "ERROR: takePicture() Image == NULL");
                         nullError.printStackTrace();
                     }
                 }

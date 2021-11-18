@@ -15,7 +15,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,10 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private TextureView cameraView;
     private TextView inceptionTextResponse;
 
-    //classifier elements
-    private Classifier classifier;
-
-    Photograph phy;
+    Classifier classifier;
+    Photograph ph;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -48,10 +45,8 @@ public class MainActivity extends AppCompatActivity {
         // Bind frontend inception text holder
         inceptionTextResponse = findViewById(R.id.inception_response);
 
-        phy = new Photograph(this, takePictureBtn, cameraView);
-        final byte[][] pictureBytes = {null};
 
-        classifier = new Classifier(this);
+        ph = new Photograph(this, takePictureBtn, cameraView);
 
         // Thread Logic
         final Handler responseHandler = new Handler(Looper.getMainLooper()) {
@@ -65,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         AtomicBoolean takingPictures = new AtomicBoolean(true);
         AtomicBoolean autoPictures = new AtomicBoolean(true);
 
-        cameraView.setSurfaceTextureListener(phy.cameraListener);
+        cameraView.setSurfaceTextureListener(ph.cameraListener);
         takePictureBtn.setOnClickListener(v -> {
 
             if (takingPictures.get()) {
@@ -79,30 +74,25 @@ public class MainActivity extends AppCompatActivity {
                 takingPictures.set(false);
                 autoPictures.set(true);
                 takePictureBtn.setText(R.string.stop_taking_picture);
+                Picture picture = null;
+                String bestLabel;
+                while (autoPictures.get()) {
+                   try {
+                       picture = ph.takePicture(false);
+                   } catch (InterruptedException e) {
+                       e.printStackTrace();
+                   }
 
-                new Thread (() -> {
-                    while (autoPictures.get()) {
-                        try {
-                            pictureBytes[0] = phy.takePicture(false);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        Log.i(TAG, "picture_bytes: " + Arrays.toString(pictureBytes[0]));
-                        classifier.feed(pictureBytes[0]);
-                        classifier.run();
-                        String bestLabel = classifier.get();
-                        Log.i(TAG, "bestLabel: " + bestLabel);
+                   Message msg = new Message();
 
-                        Message msg = new Message();
-                        msg.obj = bestLabel;
+                   // Avoid thread showing last update if
+                   // button is pressed
+                   if(autoPictures.get())
+                       responseHandler.sendMessage(msg);
 
-                        // Avoid thread showing last update if
-                        // button is pressed
-                        if(autoPictures.get())
-                            responseHandler.sendMessage(msg);
-                    }
-                }).start();
-            } else {
+                }
+            }
+            else {
                 // takingPictures to true so next time we press the button the app
                 // starts the "taking pictures thread" and autoPictures to false so
                 // we finish the running "taking pictures thread"
@@ -127,24 +117,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume");
-        phy.startBackGroundThread();
+        ph.startBackGroundThread();
         if (cameraView.isAvailable())
-            phy.managerOpenCamera();
+            ph.managerOpenCamera();
         else
-            cameraView.setSurfaceTextureListener(phy.cameraListener);
+            cameraView.setSurfaceTextureListener(ph.cameraListener);
     }
 
     @Override
     protected void onPause() {
         Log.i(TAG, "onPause");
-        phy.stopBackGroundThread();
+        ph.stopBackGroundThread();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
         classifier.close();
-        phy.closeCamera();
+        ph.closeCamera();
         super.onDestroy();
     }
 }

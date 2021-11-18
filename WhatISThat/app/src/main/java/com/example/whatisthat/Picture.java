@@ -1,12 +1,27 @@
 package com.example.whatisthat;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import androidx.annotation.NonNull;
+
 import java.nio.ByteBuffer;
 
 public class Picture {
-    private byte[] content;
+    private final Bitmap content;
 
     public Picture(ByteBuffer buffer) {
-        content = new byte[buffer.capacity()];
-        buffer.get(content);
+        byte[] bytes = new byte[buffer.capacity()];
+        buffer.get(bytes);
+        content = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+    }
+
+    @NonNull
+    public String toString() {
+        return content.toString();
+    }
+
+    public Bitmap getBitmap() {
+        return content;
     }
 }
