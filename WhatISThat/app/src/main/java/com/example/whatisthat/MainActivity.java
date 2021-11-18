@@ -4,14 +4,18 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -29,8 +33,13 @@ public class MainActivity extends AppCompatActivity {
     private TextView inceptionTextResponse;
 
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    ImageAnalysis imageAnalysis;
 
     private boolean isAnalyzing;
+
+    private Classifier classifier;
+    final int WIDTH = 299;
+    final int HEIGHT = 299;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +63,22 @@ public class MainActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
 
+        classifier = new Classifier(getApplicationContext());
+
         isAnalyzing = false;
+        imageAnalysis =
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(WIDTH, HEIGHT))
+                        .build();
+
+        takePictureBtn.setOnClickListener(v -> {
+            if (isAnalyzing) {
+                imageAnalysis.clearAnalyzer();
+            }
+            else
+                imageAnalysis.setAnalyzer(AsyncTask.THREAD_POOL_EXECUTOR, new MyAnalyzer(classifier));
+            isAnalyzing = !isAnalyzing;
+        });
     }
 
     void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
@@ -67,6 +91,6 @@ public class MainActivity extends AppCompatActivity {
 
         preview.setSurfaceProvider(cameraView.getSurfaceProvider());
 
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview);
+        cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, imageAnalysis, preview);
     }
 }
