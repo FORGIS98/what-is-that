@@ -76,15 +76,19 @@ public class MainActivity extends AppCompatActivity {
 
         final Handler responseHandler = new Handler(Looper.getMainLooper()) {
             public void handleMessage(Message msg) {
-                inceptionTextResponse.setText(((String) msg.obj).toUpperCase());
-                inceptionTextResponse.setBackgroundResource(R.drawable.round_rectangle);
+                if (isAnalyzing) {
+                    inceptionTextResponse.setText(((String) msg.obj).toUpperCase());
+                    inceptionTextResponse.setBackgroundResource(R.drawable.round_rectangle);
+                }
             }
         };
 
         takePictureBtn.setOnClickListener(v -> {
             if (isAnalyzing) {
                 imageAnalysis.clearAnalyzer();
-                takePictureBtn.setTag(R.string.take_picture);
+                takePictureBtn.setText(R.string.take_picture);
+                inceptionTextResponse.setText("");
+                inceptionTextResponse.setBackgroundResource(0);
             }
             else {
                 imageAnalysis.setAnalyzer(AsyncTask.THREAD_POOL_EXECUTOR, new MyAnalyzer(classifier, responseHandler));
