@@ -188,7 +188,7 @@ public class Photograph {
                     throw new NullPointerException();
                 }
                 ByteBuffer buffer = img.getPlanes()[0].getBuffer();
-                returnPicture = new Picture(buffer);
+                returnPicture = new Picture(img);
 
             } catch (NullPointerException nullError) {
                 Log.e(TAG, "ERROR: takePicture() Image == NULL");

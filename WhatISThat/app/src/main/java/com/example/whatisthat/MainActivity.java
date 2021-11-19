@@ -13,6 +13,9 @@ import androidx.lifecycle.LifecycleOwner;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
@@ -69,14 +72,25 @@ public class MainActivity extends AppCompatActivity {
         imageAnalysis =
                 new ImageAnalysis.Builder()
                         .setTargetResolution(new Size(WIDTH, HEIGHT))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
+
+        final Handler responseHandler = new Handler(Looper.getMainLooper()) {
+            public void handleMessage(Message msg) {
+                inceptionTextResponse.setText(((String) msg.obj).toUpperCase());
+                inceptionTextResponse.setBackgroundResource(R.drawable.round_rectangle);
+            }
+        };
 
         takePictureBtn.setOnClickListener(v -> {
             if (isAnalyzing) {
                 imageAnalysis.clearAnalyzer();
+                takePictureBtn.setTag(R.string.take_picture);
             }
-            else
-                imageAnalysis.setAnalyzer(AsyncTask.THREAD_POOL_EXECUTOR, new MyAnalyzer(classifier));
+            else {
+                imageAnalysis.setAnalyzer(AsyncTask.THREAD_POOL_EXECUTOR, new MyAnalyzer(classifier, responseHandler));
+                takePictureBtn.setText(R.string.stop_taking_picture);
+            }
             isAnalyzing = !isAnalyzing;
         });
     }
@@ -92,5 +106,11 @@ public class MainActivity extends AppCompatActivity {
         preview.setSurfaceProvider(cameraView.getSurfaceProvider());
 
         cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, imageAnalysis, preview);
+    }
+
+    @Override
+    protected void onDestroy() {
+        classifier.close();
+        super.onDestroy();
     }
 }
