@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.util.Size;
+import android.view.Surface;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         imageAnalysis =
                 new ImageAnalysis.Builder()
                         .setTargetResolution(new Size(WIDTH, HEIGHT))
+                        .setTargetRotation(Surface.ROTATION_0)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
