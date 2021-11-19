@@ -51,10 +51,6 @@ public class Picture {
         return content.toString();
     }
 
-    public boolean ready() {
-        return content != null;
-    }
-
     public Bitmap getBitmap() {
         return content;
     }

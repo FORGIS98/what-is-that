@@ -2,14 +2,12 @@ package com.example.whatisthat;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LifecycleOwner;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -18,7 +16,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.util.Size;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -105,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
         preview.setSurfaceProvider(cameraView.getSurfaceProvider());
 
-        cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, imageAnalysis, preview);
+        cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview);
     }
 
     @Override

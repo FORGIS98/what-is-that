@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.media.Image;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
@@ -13,9 +12,6 @@ import androidx.camera.core.ImageProxy;
 public class MyAnalyzer implements ImageAnalysis.Analyzer{
     Classifier classifier;
     Handler labelHandler;
-
-    final int HEIGHT = 299;
-    final int WIDTH = 299;
 
     public MyAnalyzer(Classifier c, Handler handler) {
         classifier = c;

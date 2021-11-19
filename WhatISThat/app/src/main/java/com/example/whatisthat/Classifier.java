@@ -57,7 +57,6 @@ public class Classifier {
 	}
 
 	public void feed(Picture picture) {
-		Log.i("CLASSIFIER", "picture: " + picture);
 		image.load(picture.getBitmap());
 		resizeImage();
 		inputFeature0.loadBuffer(image.getBuffer());
