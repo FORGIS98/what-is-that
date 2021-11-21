@@ -2,12 +2,17 @@ package com.example.whatisthat;
 
 import android.content.Context;
 
+import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import com.example.whatisthat.ml.InceptionV4Quant1Metadata1;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.image.ImageProcessor;
@@ -19,19 +24,15 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 public class Classifier {
 	private final int WIDTH = 299;
 	private final int HEIGHT = 299;
-	private final int NBLABELS = 1001;
+	// private final int NBLABELS = 1001;
 
 	InceptionV4Quant1Metadata1 model;
 	TensorBuffer inputFeature0;
 	TensorImage image;
 
-	private final float[] cumProb;
 	List<Category> lastProbability;
 
 	public Classifier(Context context) {
-		//Initializes cumulated probability
-		cumProb = new float[NBLABELS];
-
 		//Load model
 		try {
 			model = InceptionV4Quant1Metadata1.newInstance(context);
@@ -65,22 +66,12 @@ public class Classifier {
 	public void run() {
 		InceptionV4Quant1Metadata1.Outputs outputs = model.process(image);
 		lastProbability = outputs.getProbabilityAsCategoryList();
-		for (int i = 0; i < NBLABELS; i++) {
-			cumProb[i] = lastProbability.get(i).getScore();
-		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.N)
 	public String get() {
-		float maxProb = 0;
-		int idProb = 0;
-		for (int i = 0; i < NBLABELS; i++) {
-			if (cumProb[i] > maxProb) {
-				maxProb = cumProb[i];
-				idProb = i;
-			}
-		}
-
-		return lastProbability.get(idProb).getLabel() + " " + (int) (maxProb*100) + "%";
+		Optional<Category> max = lastProbability.stream().max(Comparator.comparing(Category::getScore));
+		return max.map(category -> category.getLabel() + " " + (int) (category.getScore() * 100) + "%").orElse("");
 	}
 
 	public void close() {
