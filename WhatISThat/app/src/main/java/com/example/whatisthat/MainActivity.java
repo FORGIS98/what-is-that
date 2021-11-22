@@ -2,149 +2,118 @@ package com.example.whatisthat;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.content.ContextCompat;
 
-import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
-import android.view.TextureView;
+import android.util.Size;
+import android.view.Surface;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.google.common.util.concurrent.ListenableFuture;
+
+import java.util.concurrent.ExecutionException;
+
 
 public class MainActivity extends AppCompatActivity {
 
     // LOGS
     private static final String TAG = "what-is-that";
-    // Permissions
-    private static final int CAM_PERMISSION = 200;
 
-    private TextureView cameraView;
+    private PreviewView cameraView;
     private TextView inceptionTextResponse;
 
-    //classifier elements
+    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    ImageAnalysis imageAnalysis;
+
+    private boolean isAnalyzing;
+
     private Classifier classifier;
+    final int WIDTH = 299;
+    final int HEIGHT = 299;
 
-    Photography phy;
-
-    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        // Bind frontend camera texture view holder
         cameraView = findViewById(R.id.camera_view);
-        // Bind frontend take picture Button
-        // frontend elements
         Button takePictureBtn = findViewById(R.id.btn_takepicture);
-
-        // Bind frontend inception text holder
         inceptionTextResponse = findViewById(R.id.inception_response);
 
-        phy = new Photography(this, takePictureBtn, cameraView);
-        final byte[][] pictureBytes = {null};
+        //Request a camera provider
+        cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+        cameraProviderFuture.addListener(() -> {
+            try {
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                bindPreview(cameraProvider);
+            } catch (ExecutionException | InterruptedException e) {
+                Log.e(TAG, "ERROR: binding camera provider failed");
+                e.printStackTrace();
+            }
+        }, ContextCompat.getMainExecutor(this));
 
-        classifier = new Classifier(this);
+        classifier = new Classifier(getApplicationContext());
 
-        // Thread Logic
+        isAnalyzing = false;
+        imageAnalysis =
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(WIDTH, HEIGHT))
+                        .setTargetRotation(Surface.ROTATION_0)
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
+
         final Handler responseHandler = new Handler(Looper.getMainLooper()) {
             public void handleMessage(Message msg) {
-                inceptionTextResponse.setText(((String) msg.obj).toUpperCase());
-                inceptionTextResponse.setBackgroundResource(R.drawable.round_rectangle);
+                if (isAnalyzing) {
+                    inceptionTextResponse.setText(((String) msg.obj).toUpperCase());
+                    inceptionTextResponse.setBackgroundResource(R.drawable.round_rectangle);
+                }
             }
         };
 
-        // This values allow to start and stop the "take pictures process"
-        AtomicBoolean takingPictures = new AtomicBoolean(true);
-        AtomicBoolean autoPictures = new AtomicBoolean(true);
-
-        cameraView.setSurfaceTextureListener(phy.cameraListener);
         takePictureBtn.setOnClickListener(v -> {
-
-            if (takingPictures.get()) {
-                // Clear TextView text
+            if (isAnalyzing) {
+                imageAnalysis.clearAnalyzer();
+                takePictureBtn.setText(R.string.take_picture);
                 inceptionTextResponse.setText("");
                 inceptionTextResponse.setBackgroundResource(0);
-
-                // takingPictures to false so if we press the button again we will
-                // enter the else statement, then autoPictures to true so while starts
-                // the "taking pictures thread"
-                takingPictures.set(false);
-                autoPictures.set(true);
-                takePictureBtn.setText(R.string.stop_taking_picture);
-
-                new Thread (() -> {
-                    while (autoPictures.get()) {
-                        try {
-                            pictureBytes[0] = phy.takePicture(false);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        Log.i(TAG, "picture_bytes: " + Arrays.toString(pictureBytes[0]));
-                        classifier.feed(pictureBytes[0]);
-                        classifier.run();
-                        String bestLabel = classifier.get();
-                        Log.i(TAG, "bestLabel: " + bestLabel);
-
-                        Message msg = new Message();
-                        msg.obj = bestLabel;
-
-                        // Avoid thread showing last update if
-                        // button is pressed
-                        if(autoPictures.get())
-                            responseHandler.sendMessage(msg);
-                    }
-                }).start();
-            } else {
-                // takingPictures to true so next time we press the button the app
-                // starts the "taking pictures thread" and autoPictures to false so
-                // we finisg the running "taking pictures thread"
-                takingPictures.set(true);
-                autoPictures.set(false);
-                takePictureBtn.setText(R.string.take_picture);
             }
+            else {
+                imageAnalysis.setAnalyzer(AsyncTask.THREAD_POOL_EXECUTOR, new MyAnalyzer(classifier, responseHandler));
+                takePictureBtn.setText(R.string.stop_taking_picture);
+            }
+            isAnalyzing = !isAnalyzing;
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == CAM_PERMISSION) {
-            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                Toast.makeText(MainActivity.this, "We need access to your camera!", Toast.LENGTH_LONG).show();
-                finish();
-            }
-        }
-    }
+    void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
+        Preview preview = new Preview.Builder()
+                .build();
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.i(TAG, "onResume");
-        phy.startBackGroundThread();
-        if (cameraView.isAvailable())
-            phy.managerOpenCamera();
-        else
-            cameraView.setSurfaceTextureListener(phy.cameraListener);
-    }
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
 
-    @Override
-    protected void onPause() {
-        Log.i(TAG, "onPause");
-        phy.stopBackGroundThread();
-        super.onPause();
+        preview.setSurfaceProvider(cameraView.getSurfaceProvider());
+
+        cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview);
     }
 
     @Override
     protected void onDestroy() {
         classifier.close();
-        phy.closeCamera();
         super.onDestroy();
     }
 }
