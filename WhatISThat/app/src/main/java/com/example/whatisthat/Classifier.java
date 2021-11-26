@@ -105,8 +105,6 @@ public class Classifier {
 		for (int i = 0; i < NBLABELS; i++) {
 			maxAt = probabilities[i] > probabilities[maxAt] ? i : maxAt;
 		}
-		//Optional<Category> max = probabilities.stream().max(Comparator.comparing(Category::getScore));
-		//return max.map(category -> category.getLabel() + " " + (int) (category.getScore() * 100) + "%").orElse("");
 		return lastProbability.get(maxAt).getLabel() + " " + (int) (probabilities[maxAt]*100) + "%";
 	}
 
