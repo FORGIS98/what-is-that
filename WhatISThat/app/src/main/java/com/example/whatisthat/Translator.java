@@ -6,6 +6,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import okhttp3.MediaType;
@@ -20,7 +23,11 @@ public class Translator {
     OkHttpClient client = new OkHttpClient();
     String URL = "https://cs32ukd9fi.execute-api.us-east-2.amazonaws.com/desarrollo/what-is-that-translator";
 
-    public String translate(String word, String lang) {
+    public String translate(String word) {
+
+        List<String> availableLangs = Arrays.asList("es", "fr", "en");
+        String lang = availableLangs.contains(Locale.getDefault().getLanguage()) ? Locale.getDefault().getLanguage() : "en";
+        Log.i("LANGUAGE", lang);
 
         JSONObject jsonObject = new JSONObject();
         try {

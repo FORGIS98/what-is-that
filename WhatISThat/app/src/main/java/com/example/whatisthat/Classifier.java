@@ -112,7 +112,7 @@ public class Classifier {
 
 		if (!lastEnglishWord.equals(lastProbability.get(maxAt).getLabel())) {
 			lastEnglishWord = lastProbability.get(maxAt).getLabel();
-			lastTranslatedWord = translator.translate(lastEnglishWord, "es");
+			lastTranslatedWord = translator.translate(lastEnglishWord);
 		}
 
 		return lastTranslatedWord + " " + (int) (probabilities[maxAt]*100) + "%";
