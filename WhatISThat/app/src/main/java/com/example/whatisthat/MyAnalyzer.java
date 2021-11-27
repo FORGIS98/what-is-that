@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.media.Image;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 
 import androidx.annotation.RequiresApi;
 import androidx.camera.core.ImageAnalysis;

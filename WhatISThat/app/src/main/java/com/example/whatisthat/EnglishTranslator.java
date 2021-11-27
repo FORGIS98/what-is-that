@@ -22,7 +22,7 @@ public class EnglishTranslator {
     DownloadConditions conditions = new DownloadConditions.Builder()
         .requireWifi()
         .build();
-    boolean isRready = false;
+    boolean isReady = false;
 
     public EnglishTranslator() {
         String lang = Locale.getDefault().getLanguage();
@@ -36,7 +36,7 @@ public class EnglishTranslator {
     }
 
     public boolean isReadyToTranslate() {
-        return isRready;
+        return isReady;
     }
 
     public void downloadModel() {
@@ -45,8 +45,8 @@ public class EnglishTranslator {
                 new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-                        Log.i(this.getClass().getSimpleName(), "Download model success");
-                        isRready = true;
+                        Log.i(this.getClass().getSimpleName(), "Download model succeed");
+                        isReady = true;
                     }
                 }
             )
@@ -54,7 +54,7 @@ public class EnglishTranslator {
                 new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e(this.getClass().getSimpleName(), "Downlaoding model failed.");
+                        Log.e(this.getClass().getSimpleName(), "Downloading model failed.");
                         e.printStackTrace();
                     }
                 }
@@ -67,7 +67,7 @@ public class EnglishTranslator {
                 new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String s) {
-                        Log.i(this.getClass().getSimpleName(), "Translation success");
+                        Log.i(this.getClass().getSimpleName(), "Translation succeed.");
                         Message msg = new Message();
                         msg.obj = s;
 

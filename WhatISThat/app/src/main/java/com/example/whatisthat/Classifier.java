@@ -13,13 +13,8 @@ import androidx.annotation.RequiresApi;
 import com.example.whatisthat.ml.InceptionV4Quant1Metadata1;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Queue;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.image.ImageProcessor;
@@ -43,9 +38,6 @@ public class Classifier {
 	float[] probabilities;
 
 	EnglishTranslator translator = new EnglishTranslator();
-	String lastTranslatedWord = "";
-	String lastEnglishWord = "";
-	String translatedWord;
 	Handler myAnalyzerHandler;
 
 	public Classifier(Context context) {
