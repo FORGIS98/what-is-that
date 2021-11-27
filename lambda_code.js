@@ -2,17 +2,18 @@ const langs = {
     "es": ["ejemplo"],
     "en": ["example"],
     "fr": ["exemple"],
-    "de": ["voorbeeld"],
-    "ja": ["例"]
-    
 };
 
 exports.handler = async (event) => {
+    
     let response;
-    console.log("Input: " + event);
+    
+    console.info("BODY:\n" + JSON.stringify(event.body, null, 2));
+    
+    event = JSON.parse(event.body);
     
     // Validate the entry //
-    if (event.body === null || event.body === undefined) {
+    if (event === null || event === undefined) {
         response = {
             statusCode: 400,
             body: JSON.stringify('Body not found!'),
@@ -21,8 +22,8 @@ exports.handler = async (event) => {
         return response;
     }
     
-    if (event.body.word === null || event.body.word === undefined
-        || event.body.lang === null || event.body.lang === undefined) {
+    if (event.word === null || event.word === undefined
+        || event.lang === null || event.lang === undefined) {
         response = {
             statusCode: 400,
             body: JSON.stringify('Missing body elements!'),
@@ -32,12 +33,12 @@ exports.handler = async (event) => {
     }
     
     // Get translated word if exists //
-    if (langs["en"].includes(event.body.word.toLowerCase())) {
-        let index = langs["en"].indexOf(event.body.word.toLowerCase());
+    if (langs["en"].includes(event.word.toLowerCase())) {
+        let index = langs["en"].indexOf(event.word.toLowerCase());
         
         response = {
             statusCode: 200,
-            body: JSON.stringify(langs[event.body.lang][index])
+            body: JSON.stringify(langs[event.lang][index])
         };
     } else {
         response = {
@@ -47,4 +48,5 @@ exports.handler = async (event) => {
     }
     
     return response;
+    
 };

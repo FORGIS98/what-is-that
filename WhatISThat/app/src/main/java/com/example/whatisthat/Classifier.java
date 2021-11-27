@@ -39,6 +39,10 @@ public class Classifier {
 	LinkedList<List<Category>> analyzerMemory;
 	float[] probabilities;
 
+	Translator translator = new Translator();
+	String lastTranslatedWord = "";
+	String lastEnglishWord = "";
+
 	public Classifier(Context context) {
 		//Load model
 		try {
@@ -105,7 +109,13 @@ public class Classifier {
 		for (int i = 0; i < NBLABELS; i++) {
 			maxAt = probabilities[i] > probabilities[maxAt] ? i : maxAt;
 		}
-		return lastProbability.get(maxAt).getLabel() + " " + (int) (probabilities[maxAt]*100) + "%";
+
+		if (!lastEnglishWord.equals(lastProbability.get(maxAt).getLabel())) {
+			lastEnglishWord = lastProbability.get(maxAt).getLabel();
+			lastTranslatedWord = translator.translate(lastEnglishWord, "es");
+		}
+
+		return lastTranslatedWord + " " + (int) (probabilities[maxAt]*100) + "%";
 	}
 
 	public void close() {
