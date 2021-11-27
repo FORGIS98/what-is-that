@@ -3,6 +3,9 @@ package com.example.whatisthat;
 import android.content.Context;
 
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -39,9 +42,11 @@ public class Classifier {
 	LinkedList<List<Category>> analyzerMemory;
 	float[] probabilities;
 
-	Translator translator = new Translator();
+	EnglishTranslator translator = new EnglishTranslator();
 	String lastTranslatedWord = "";
 	String lastEnglishWord = "";
+	String translatedWord;
+	Handler myAnalyzerHandler;
 
 	public Classifier(Context context) {
 		//Load model
@@ -61,6 +66,10 @@ public class Classifier {
 
 		probabilities = new float[NBLABELS];
 		analyzerMemory = new LinkedList<>();
+	}
+
+	public void setHandler (Handler h) {
+		this.myAnalyzerHandler = h;
 	}
 
 	private void resizeImage() {
@@ -104,19 +113,28 @@ public class Classifier {
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.N)
-	public String get() {
+	public void get() {
 		int maxAt = 0;
 		for (int i = 0; i < NBLABELS; i++) {
 			maxAt = probabilities[i] > probabilities[maxAt] ? i : maxAt;
 		}
 
-		if (!lastEnglishWord.equals(lastProbability.get(maxAt).getLabel())) {
-			lastEnglishWord = lastProbability.get(maxAt).getLabel();
-			lastTranslatedWord = translator.translate(lastEnglishWord);
+		if (translator.isReadyToTranslate()) {
+			translator.translateWord(lastProbability.get(maxAt).getLabel(), responseHandler);
+		} else {
+			Message msg = new Message();
+			msg.obj = lastProbability.get(maxAt).getLabel() + " " + (int) (probabilities[maxAt]*100) + "%";
+			responseHandler.sendMessage(msg);
 		}
-
-		return lastTranslatedWord + " " + (int) (probabilities[maxAt]*100) + "%";
 	}
+
+	final Handler responseHandler = new Handler(Looper.getMainLooper()) {
+		public void handleMessage(Message msg) {
+			Message newMsg = new Message();
+			newMsg.copyFrom(msg);
+			myAnalyzerHandler.sendMessage(newMsg);
+		}
+	};
 
 	public void close() {
 		model.close();
