@@ -14,6 +14,7 @@ import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
 
 import java.util.Locale;
+
 import android.os.Handler;
 
 public class EnglishTranslator {
@@ -61,7 +62,7 @@ public class EnglishTranslator {
             );
     }
 
-    public void translateWord(String word, Handler responseHandler) {
+    public void translateWord(String word, Handler responseHandler, String probability) {
         englishToDeviceLang.translate(word)
             .addOnSuccessListener(
                 new OnSuccessListener<String>() {
@@ -69,6 +70,7 @@ public class EnglishTranslator {
                     public void onSuccess(String s) {
                         Log.i(this.getClass().getSimpleName(), "Translation succeed.");
                         Message msg = new Message();
+                        s += probability;
                         msg.obj = s;
 
                         responseHandler.sendMessage(msg);

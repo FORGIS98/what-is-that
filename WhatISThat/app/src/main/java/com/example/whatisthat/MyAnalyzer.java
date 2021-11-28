@@ -10,7 +10,7 @@ import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 
 
-public class MyAnalyzer implements ImageAnalysis.Analyzer{
+public class MyAnalyzer implements ImageAnalysis.Analyzer {
     Classifier classifier;
     Handler labelHandler;
 

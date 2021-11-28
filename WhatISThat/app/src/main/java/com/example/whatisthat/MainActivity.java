@@ -68,11 +68,11 @@ public class MainActivity extends AppCompatActivity {
 
         isAnalyzing = false;
         imageAnalysis =
-                new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(WIDTH, HEIGHT))
-                        .setTargetRotation(Surface.ROTATION_0)
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build();
+            new ImageAnalysis.Builder()
+                .setTargetResolution(new Size(WIDTH, HEIGHT))
+                .setTargetRotation(Surface.ROTATION_0)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build();
 
         final Handler responseHandler = new Handler(Looper.getMainLooper()) {
             public void handleMessage(Message msg) {
@@ -89,8 +89,7 @@ public class MainActivity extends AppCompatActivity {
                 takePictureBtn.setText(R.string.take_picture);
                 inceptionTextResponse.setText("");
                 inceptionTextResponse.setBackgroundResource(0);
-            }
-            else {
+            } else {
                 imageAnalysis.setAnalyzer(AsyncTask.THREAD_POOL_EXECUTOR, new MyAnalyzer(classifier, responseHandler));
                 takePictureBtn.setText(R.string.stop_taking_picture);
             }
@@ -100,11 +99,11 @@ public class MainActivity extends AppCompatActivity {
 
     void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
         Preview preview = new Preview.Builder()
-                .build();
+            .build();
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                .build();
+            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+            .build();
 
         preview.setSurfaceProvider(cameraView.getSurfaceProvider());
 
