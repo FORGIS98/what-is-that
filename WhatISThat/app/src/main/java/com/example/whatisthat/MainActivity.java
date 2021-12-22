@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 
 
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     ImageAnalysis imageAnalysis;
 
     private boolean isAnalyzing;
+    private LinkedList<String> lastTenReads = new LinkedList<>();
 
     private Classifier classifier;
     final int WIDTH = 299;
@@ -77,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         final Handler responseHandler = new Handler(Looper.getMainLooper()) {
             public void handleMessage(Message msg) {
                 if (isAnalyzing) {
+                    updateLastTen((String) msg.obj);
                     inceptionTextResponse.setText(((String) msg.obj).toUpperCase());
                     inceptionTextResponse.setBackgroundResource(R.drawable.round_rectangle);
                 }
@@ -108,6 +111,21 @@ public class MainActivity extends AppCompatActivity {
         preview.setSurfaceProvider(cameraView.getSurfaceProvider());
 
         cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview);
+    }
+
+    private void updateLastTen(String word) {
+        // word = Portatil 35%, entonces me quedo con Portatil y con 35
+        String [] wordPercent = word.substring(0, word.length() - 1).split(" ");
+
+        if (Integer.parseInt(wordPercent[1]) >= 30) {
+            if (lastTenReads.contains(wordPercent[0])) {
+                lastTenReads.remove(wordPercent[0]);
+            } else if (lastTenReads.size() > 10) {
+                lastTenReads.removeLast();
+            }
+
+            lastTenReads.addFirst(wordPercent[0]);
+        }
     }
 
     @Override

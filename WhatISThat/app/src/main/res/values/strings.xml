@@ -2,4 +2,5 @@
     <string name="app_name">WhatISThat</string>
     <string name="take_picture">Take Picture</string>
     <string name="stop_taking_picture">STOP</string>
+    <string name="items_list">+</string>
 </resources>
